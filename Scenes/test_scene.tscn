@@ -1,8 +1,9 @@
 [gd_scene format=4 uid="uid://iywk65kq85u8"]
 
 [ext_resource type="Texture2D" uid="uid://c82jkh3pxqm6" path="res://addons/kenney_prototype_textures/dark/texture_01.png" id="1_3dogw"]
-[ext_resource type="Script" uid="uid://peswexul1op6" path="res://Scripts/controller.gd" id="2_r5l72"]
-[ext_resource type="Script" uid="uid://bhpq4d1or4p2i" path="res://Scripts/leg.gd" id="3_50ct6"]
+[ext_resource type="Script" uid="uid://7jnf3sd1pky7" path="res://Scripts/CharacterBody.gd" id="2_50ct6"]
+[ext_resource type="Script" uid="uid://c6wf60sj436gj" path="res://Scripts/gait_controller.gd" id="2_hb2xm"]
+[ext_resource type="Script" uid="uid://b671b1uwtpe7h" path="res://Scripts/dynamics_profile.gd" id="3_hb2xm"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r5l72"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -20,6 +21,16 @@ glow_enabled = true
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_50ct6"]
 albedo_texture = ExtResource("1_3dogw")
 uv1_triplanar = true
+
+[sub_resource type="Resource" id="Resource_ak5v8"]
+script = ExtResource("3_hb2xm")
+response = -0.9340000000000002
+metadata/_custom_type_script = "uid://b671b1uwtpe7h"
+
+[sub_resource type="Resource" id="Resource_x033f"]
+script = ExtResource("3_hb2xm")
+response = 1.0
+metadata/_custom_type_script = "uid://b671b1uwtpe7h"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_etg7y"]
 resource_name = "Metal"
@@ -950,17 +961,16 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_pbf3j")
 
-[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_3dogw"]
-angle = 0.3645993
-
-[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_50ct6"]
-angle = 1.4753268
-
 [sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_hb2xm"]
-angle = 0.6335545
+angle = 0.6024877
 
-[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_r5l72"]
-angle = 0.0
+[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_ak5v8"]
+angle = 1.8306758
+
+[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_x033f"]
+angle = 0.6981317
+
+[sub_resource type="JointLimitationCone3D" id="JointLimitationCone3D_rdbpf"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_50ct6"]
 
@@ -978,15 +988,25 @@ use_collision = true
 size = Vector3(25, 0.1, 25)
 material = SubResource("StandardMaterial3D_50ct6")
 
-[node name="SmallEnemySpiderReRigged" type="CharacterBody3D" parent="." unique_id=326157489]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6651437, 0)
-script = ExtResource("2_r5l72")
+[node name="Camera3D" type="Camera3D" parent="." unique_id=891631093]
+transform = Transform3D(0.37866142, -0.6980264, 0.60776204, 0, 0.6566601, 0.75418675, -0.92553526, -0.28558144, 0.24865185, 8.845065, 11.642025, 4.4539394)
 
-[node name="SpiderArmature" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=392211158]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2487433, 0, 0)
+[node name="SpiderChassisParent" type="Node3D" parent="." unique_id=17499908]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+metadata/_edit_lock_ = true
 
-[node name="Skeleton3D" type="Skeleton3D" parent="SmallEnemySpiderReRigged/SpiderArmature" unique_id=1855553969]
-bones/0/name = "Bone.Bk"
+[node name="SpiderVisual" type="Node3D" parent="SpiderChassisParent" unique_id=858160628 node_paths=PackedStringArray("ghost_target", "target_parent", "raycast_parent")]
+script = ExtResource("2_hb2xm")
+ghost_target = NodePath("../SmallEnemySpiderReRigged")
+target_parent = NodePath("../TargetParent")
+raycast_parent = NodePath("../SmallEnemySpiderReRigged/Raycast")
+ghost_profile = SubResource("Resource_ak5v8")
+leg_profile = SubResource("Resource_x033f")
+ray_length = 5.0
+lead_distance = 0.25
+
+[node name="Skeleton3D" type="Skeleton3D" parent="SpiderChassisParent/SpiderVisual" unique_id=1021706005]
+bones/0/name = "Root"
 bones/0/parent = -1
 bones/0/rest = Transform3D(0, -5.9604627e-08, -0.9999999, -5.9604638e-08, -0.99999976, 5.9604634e-08, -0.99999994, 5.9604627e-08, -3.5527128e-15, 0, 1.3625717, -2.483527e-09)
 bones/0/enabled = true
@@ -1014,7 +1034,7 @@ bones/3/enabled = true
 bones/3/position = Vector3(3.7252903e-08, 1.5139432, -2.9802322e-08)
 bones/3/rotation = Quaternion(0.011499345, 0.3952538, 0.91793305, -0.03226711)
 bones/3/scale = Vector3(1, 0.99999994, 1)
-bones/4/name = "Foot.003.Fr"
+bones/4/name = "Foot_1.Fr"
 bones/4/parent = 3
 bones/4/rest = Transform3D(0.66847384, 0.67112243, -0.32052684, -0.67112213, 0.35858095, -0.6488566, -0.32052732, 0.64885634, 0.6901071, 3.5390258e-08, 2.14311, -2.5331974e-07)
 bones/4/enabled = true
@@ -1042,7 +1062,7 @@ bones/7/enabled = true
 bones/7/position = Vector3(3.0524347e-09, 1.5139434, 9.156022e-08)
 bones/7/rotation = Quaternion(0.013234083, 0.39653575, 0.9179097, -0.0051032812)
 bones/7/scale = Vector3(1.0000001, 1.0000001, 1)
-bones/8/name = "Foot.004.Fr"
+bones/8/name = "Foot_2.Fr"
 bones/8/parent = 7
 bones/8/rest = Transform3D(0.99991274, 0.011465212, -0.006561785, -0.011465435, 0.5064964, -0.86216587, -0.006561394, 0.8621658, 0.50658375, 1.0477379e-09, 2.14311, -1.2167584e-07)
 bones/8/enabled = true
@@ -1070,7 +1090,7 @@ bones/11/enabled = true
 bones/11/position = Vector3(1.15484e-07, 1.5139434, 8.940697e-08)
 bones/11/rotation = Quaternion(-0.031022016, 0.39455745, 0.91748095, -0.039885495)
 bones/11/scale = Vector3(0.99999994, 1, 1)
-bones/12/name = "Foot.005.Fr"
+bones/12/name = "Foot_3.Fr"
 bones/12/parent = 11
 bones/12/rest = Transform3D(0.55591303, -0.7764939, 0.29667795, 0.77649385, 0.3577133, -0.518747, 0.29667825, 0.51874685, 0.8018002, 5.029142e-08, 2.1431098, -3.2782555e-07)
 bones/12/enabled = true
@@ -1098,7 +1118,7 @@ bones/15/enabled = true
 bones/15/position = Vector3(-5.820766e-09, 1.5139433, 5.9604645e-08)
 bones/15/rotation = Quaternion(0.008134371, 0.3965348, 0.91796905, -0.005170425)
 bones/15/scale = Vector3(1, 0.9999996, 0.9999995)
-bones/16/name = "Foot.Bk"
+bones/16/name = "Foot_3.Bk"
 bones/16/parent = 15
 bones/16/rest = Transform3D(0.6271713, 0.7117009, -0.3164458, -0.7117003, 0.35858044, -0.6040718, -0.31644717, 0.604071, 0.73140913, -1.0617077e-07, 2.1431098, -1.3411045e-07)
 bones/16/enabled = true
@@ -1126,7 +1146,7 @@ bones/19/enabled = true
 bones/19/position = Vector3(7.103438e-10, 1.5139432, 1.7981849e-07)
 bones/19/rotation = Quaternion(0.0026598063, 0.39655125, 0.91800123, -0.003719028)
 bones/19/scale = Vector3(0.9999999, 1, 1.0000001)
-bones/20/name = "Foot.001.Bk"
+bones/20/name = "Foot_2.Bk"
 bones/20/parent = 19
 bones/20/rest = Transform3D(0.9999863, 0.004542985, -0.0026002629, -0.004543094, 0.5064967, -0.8622299, -0.0026000729, 0.8622298, 0.5065105, 1.1641532e-09, 2.143109, 1.2836199e-07)
 bones/20/enabled = true
@@ -1154,7 +1174,7 @@ bones/23/enabled = true
 bones/23/position = Vector3(-1.8905848e-07, 1.5139434, 2.9802322e-08)
 bones/23/rotation = Quaternion(0.008065592, 0.3964788, 0.91796976, 0.008426874)
 bones/23/scale = Vector3(1.0000001, 0.9999997, 0.99999964)
-bones/24/name = "Foot.002.Bk"
+bones/24/name = "Foot_1.Bk"
 bones/24/parent = 23
 bones/24/rest = Transform3D(0.65841633, -0.6810086, 0.3204919, 0.68100834, 0.35771328, -0.63895905, 0.32049242, 0.6389588, 0.69929683, 1.4342368e-07, 2.1431096, 0)
 bones/24/enabled = true
@@ -1162,365 +1182,356 @@ bones/24/position = Vector3(1.4342368e-07, 2.1431096, 0)
 bones/24/rotation = Quaternion(0.3877519, -1.5372694e-07, 0.41326964, 0.8239276)
 bones/24/scale = Vector3(0.9999999, 0.99999994, 0.9999999)
 
-[node name="Shin_1_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=475149026]
-transform = Transform3D(-0.8060804, 0.25222504, 0.53536546, -0.031038124, -0.92140335, 0.38736498, 0.5909907, 0.29563072, 0.7505543, 1.0739292, 1.3623767, 1.3257141)
+[node name="Shin_1_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=726373577]
+transform = Transform3D(-0.70494604, 0.44076487, 0.5556771, -0.12574099, -0.8487146, 0.51368487, 0.69802594, 0.29224885, 0.65372026, 1.1553211, 1.3841715, 1.1736307)
 bone_name = "Shin_1.Fr"
 bone_idx = 3
 
-[node name="Shin_Joint_005" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_1_Fr" unique_id=1130165549]
+[node name="Shin_Joint_005" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_1_Fr" unique_id=145813446]
 transform = Transform3D(-0.7408087, -0.028235473, 0.6711226, 0.35771376, -0.86224186, 0.35858095, 0.56854504, 0.5057096, 0.6488565, 0.11465665, 0.4729881, -2.020853)
 mesh = SubResource("ArrayMesh_gk8qw")
 
-[node name="Thigh_1_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1071764923]
-transform = Transform3D(0.81872386, 0.26143205, 0.51121795, -0.03389804, 0.9107877, -0.41147995, -0.5731851, 0.31955943, 0.75454617, 0.67813593, -0.016504172, 0.8419194)
+[node name="Thigh_1_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1257899956]
+transform = Transform3D(0.7610128, 0.2647903, 0.5922376, -0.032969523, 0.92751503, -0.3723284, -0.64789844, 0.26382074, 0.71458095, 0.75444365, -0.02003362, 0.7742211)
 bone_name = "Thigh_1.Fr"
 bone_idx = 2
 
-[node name="Chassis_Con_005" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Fr" unique_id=325559545]
+[node name="Chassis_Con_005" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Fr" unique_id=312352105]
 transform = Transform3D(0.761013, -0.032969575, -0.6478986, 0.20492606, 0.95978904, 0.19186266, 0.6155201, -0.2787813, 0.7371678, -0.07318524, -0.28392142, -1.0406913)
 mesh = SubResource("ArrayMesh_ji8h5")
 
-[node name="Thigh_005" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Fr" unique_id=1781558104]
+[node name="Thigh_005" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Fr" unique_id=1543915687]
 transform = Transform3D(0.761013, -0.032969575, -0.6478986, 0.20492606, 0.95978904, 0.19186266, 0.6155201, -0.2787813, 0.7371678, -0.07318524, -0.28392142, -1.0406913)
 mesh = SubResource("ArrayMesh_t356g")
 
-[node name="Thigh_Joint_005" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Fr" unique_id=463576445]
+[node name="Thigh_Joint_005" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Fr" unique_id=731675691]
 transform = Transform3D(0.761013, -0.032969575, -0.6478986, 0.20492606, 0.95978904, 0.19186266, 0.6155201, -0.2787813, 0.7371678, -0.07318524, -0.28392142, -1.0406913)
 mesh = SubResource("ArrayMesh_4a4ec")
 
-[node name="Shin_2_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=2139697348]
-transform = Transform3D(-0.9999546, 0.0026317425, 0.009143207, 0.0017173951, -0.89527714, 0.44550484, 0.009358121, 0.44550103, 0.8952322, -0.006616994, 1.3085837, 1.8067001)
+[node name="Shin_2_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1862711498]
+transform = Transform3D(-0.99552274, 0.09311611, 0.016238544, -0.07402909, -0.87491965, 0.47857508, 0.058770478, 0.47523066, 0.8778961, 0.0004817322, 1.4398192, 1.4817309)
 bone_name = "Shin_2.Fr"
 bone_idx = 7
 
-[node name="Shin_Joint_004" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_2_Fr" unique_id=541419888]
+[node name="Shin_Joint_004" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_2_Fr" unique_id=1123526052]
 transform = Transform3D(-0.99990666, 0.0074458295, 0.011465223, -0.00061306625, -0.86224246, 0.50649667, 0.013657075, 0.5064425, 0.86216617, -0.027933287, 0.4729886, -2.023911)
 mesh = SubResource("ArrayMesh_aioeo")
 
-[node name="Thigh_2_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1914495484]
-transform = Transform3D(0.9997684, 0.0048666373, -0.020955158, -0.01431608, 0.8775872, -0.47920182, 0.016057938, 0.47939077, 0.8774543, -0.013984809, -0.020033557, 1.0809295)
+[node name="Thigh_2_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1529368698]
+transform = Transform3D(0.99976826, 0.009555535, -0.01927419, -0.014316078, 0.9642717, -0.26452523, 0.016057936, 0.26474, 0.96418583, -0.013984809, -0.020033557, 1.0809295)
 bone_name = "Thigh_2.Fr"
 bone_idx = 6
 
-[node name="Chassis_Con_004" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Fr" unique_id=317615669]
+[node name="Chassis_Con_004" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Fr" unique_id=1411710007]
 transform = Transform3D(0.9997687, -0.014316146, 0.016057849, 0.0092372205, 0.9597893, 0.28057203, -0.019428844, -0.2803589, 0.9596989, -0.0036627578, -0.28392148, -1.0432547)
 mesh = SubResource("ArrayMesh_dey7y")
 
-[node name="Thigh_004" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Fr" unique_id=426128994]
+[node name="Thigh_004" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Fr" unique_id=1907332893]
 transform = Transform3D(0.9997687, -0.014316146, 0.016057849, 0.0092372205, 0.9597893, 0.28057203, -0.019428844, -0.2803589, 0.9596989, -0.0036627578, -0.28392148, -1.0432547)
 mesh = SubResource("ArrayMesh_7hqto")
 
-[node name="Thigh_Joint_004" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Fr" unique_id=1775300586]
+[node name="Thigh_Joint_004" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Fr" unique_id=600936826]
 transform = Transform3D(0.9997687, -0.014316146, 0.016057849, 0.0092372205, 0.9597893, 0.28057203, -0.019428844, -0.2803589, 0.9596989, -0.0036627578, -0.28392148, -1.0432547)
 mesh = SubResource("ArrayMesh_lleep")
 
-[node name="Shin_3_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=965271436]
-transform = Transform3D(-0.5726242, -0.34013844, -0.7459267, -0.047270373, -0.89465636, 0.44424614, -0.8184538, 0.28964654, 0.4962236, -1.3560672, 1.3052021, 1.1983421)
+[node name="Shin_3_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=526032972]
+transform = Transform3D(-0.64938873, -0.2835317, -0.7056228, -0.1093565, -0.88343126, 0.45561963, -0.7525523, 0.37303895, 0.5426846, -0.99260485, 1.4576713, 1.0008585)
 bone_name = "Shin_3.Fr"
 bone_idx = 11
 
-[node name="Shin_Joint_003" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_3_Fr" unique_id=271736198]
+[node name="Shin_Joint_003" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_3_Fr" unique_id=1894168856]
 transform = Transform3D(-0.62713253, -0.06133439, -0.77649426, -0.35858047, -0.86224306, 0.35771346, -0.6914661, 0.5027698, 0.5187467, 0.24691792, 0.47299019, -2.0089881)
 mesh = SubResource("ArrayMesh_dmenx")
 
-[node name="Thigh_3_Fr" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=795524494]
-transform = Transform3D(0.6284913, -0.35940188, -0.6898031, -0.02624261, 0.8765426, -0.48060733, 0.7773737, 0.3201598, 0.54146796, -0.8119531, -0.021833796, 0.7136382)
+[node name="Thigh_3_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1797905231]
+transform = Transform3D(0.66758853, -0.14424807, -0.7304229, -0.025421623, 0.9760633, -0.21599343, 0.7440961, 0.16276331, 0.64794195, -0.7742214, -0.020033408, 0.75444394)
 bone_name = "Thigh_3.Fr"
 bone_idx = 10
 
-[node name="Chassis_Con_003" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Fr" unique_id=649682690]
+[node name="Chassis_Con_003" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Fr" unique_id=180601546]
 transform = Transform3D(0.66758883, -0.025421545, 0.74409604, -0.19186239, 0.95978916, 0.20492584, -0.71938443, -0.27957037, 0.63586676, -0.045026336, -0.28392118, -1.0422894)
 mesh = SubResource("ArrayMesh_umkld")
 
-[node name="Thigh_003" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Fr" unique_id=527351090]
+[node name="Thigh_003" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Fr" unique_id=1936956056]
 transform = Transform3D(0.66758883, -0.025421545, 0.74409604, -0.19186239, 0.95978916, 0.20492584, -0.71938443, -0.27957037, 0.63586676, -0.045026336, -0.28392118, -1.0422894)
 mesh = SubResource("ArrayMesh_lru3e")
 
-[node name="Thigh_Joint_003" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Fr" unique_id=645708880]
+[node name="Thigh_Joint_003" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Fr" unique_id=296245265]
 transform = Transform3D(0.66758883, -0.025421545, 0.74409604, -0.19186239, 0.95978916, 0.20492584, -0.71938443, -0.27957037, 0.63586676, -0.045026336, -0.28392118, -1.0422894)
 mesh = SubResource("ArrayMesh_dpomq")
 
-[node name="Shin_3_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1415135496]
-transform = Transform3D(0.65363985, -0.33735728, -0.677454, 2.1738e-05, -0.89514065, 0.4457811, -0.75680554, -0.2913954, -0.5850925, -1.3617945, 1.3063872, -1.194653)
+[node name="Shin_3_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=303156405]
+transform = Transform3D(0.73361826, -0.26254493, -0.6267968, 0.089871705, -0.876769, 0.47243774, -0.6735933, -0.40292057, -0.6196183, -1.0374147, 1.4438988, -1.036616)
 bone_name = "Shin_3.Bk"
 bone_idx = 15
 
-[node name="Shin_Joint_002" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_3_Bk" unique_id=1458992888]
+[node name="Shin_Joint_002" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_3_Bk" unique_id=895958498]
 transform = Transform3D(0.702468, 0.0045461985, -0.711701, -0.35771355, -0.8622429, -0.35858065, -0.61528856, 0.506477, -0.6040711, -0.016345311, 0.47298914, -2.0240383)
 mesh = SubResource("ArrayMesh_c2ykx")
 
-[node name="Thigh_3_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1274314987]
-transform = Transform3D(-0.66502476, -0.36723104, -0.6502946, -0.011871228, 0.8758376, -0.4824586, 0.74672693, -0.31312707, -0.58681345, -0.8058275, -0.019581314, -0.72059643)
+[node name="Thigh_3_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=2037167577]
+transform = Transform3D(-0.7147066, -0.18690982, -0.6739877, -0.012805633, 0.96696645, -0.2545797, 0.6993075, -0.17331865, -0.69349104, -0.75444376, -0.020033624, -0.7742213)
 bone_name = "Thigh_3.Bk"
 bone_idx = 14
 
-[node name="Chassis_Con_002" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Bk" unique_id=958529099]
+[node name="Chassis_Con_002" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Bk" unique_id=923013433]
 transform = Transform3D(-0.7147063, -0.012805717, 0.69930744, -0.20492592, 0.9597889, -0.19186273, -0.66873044, -0.28043184, -0.68859106, 0.0019562324, -0.28392103, -1.0432594)
 mesh = SubResource("ArrayMesh_8ys3c")
 
-[node name="Thigh_002" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Bk" unique_id=1955081943]
+[node name="Thigh_002" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Bk" unique_id=630841418]
 transform = Transform3D(-0.7147063, -0.012805717, 0.69930744, -0.20492592, 0.9597889, -0.19186273, -0.66873044, -0.28043184, -0.68859106, 0.0019562324, -0.28392103, -1.0432594)
 mesh = SubResource("ArrayMesh_o2eoy")
 
-[node name="Thigh_Joint_002" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_3_Bk" unique_id=1467299951]
+[node name="Thigh_Joint_002" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_3_Bk" unique_id=1046970937]
 transform = Transform3D(-0.7147063, -0.012805717, 0.69930744, -0.20492592, 0.9597889, -0.19186273, -0.66873044, -0.28043184, -0.68859106, 0.0019562324, -0.28392103, -1.0432594)
 mesh = SubResource("ArrayMesh_rxpdu")
 
-[node name="Shin_2_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=621187802]
-transform = Transform3D(0.99436015, -0.04097506, -0.097819015, 0.001130054, -0.9182025, 0.39610985, -0.10604829, -0.39398655, -0.9129778, -0.17270797, 1.3555055, -1.7046516)
+[node name="Shin_2_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=447396401]
+transform = Transform3D(0.9956287, 0.093203664, -0.005955168, 0.08398511, -0.86561465, 0.49361703, 0.04085195, -0.49195957, -0.86965907, 0.00018923078, 1.4208565, -1.5453316)
 bone_name = "Shin_2.Bk"
 bone_idx = 19
 
-[node name="Shin_Joint_001" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_2_Bk" unique_id=1479813863]
+[node name="Shin_Joint_001" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_2_Bk" unique_id=901068150]
 transform = Transform3D(0.9999843, 0.0033796167, -0.004543074, 0.0006130042, -0.8622418, -0.5064967, -0.0056289937, 0.5064859, -0.86223006, -0.011683935, 0.47298795, -2.0240693)
 mesh = SubResource("ArrayMesh_j7x3g")
 
-[node name="Thigh_2_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=847157296]
-transform = Transform3D(-0.99485576, -0.0500167, -0.0880908, -0.008689454, 0.9085349, -0.41771874, 0.100926496, -0.41480434, -0.904296, -0.09698553, -0.019964602, -1.0766612)
+[node name="Thigh_2_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1651924168]
+transform = Transform3D(-0.999947, -0.009112494, 0.0046722726, -0.010106373, 0.95174634, -0.30671895, -0.0016517572, -0.30675015, -0.9517885, 0.013985029, -0.020033496, -1.0809292)
 bone_name = "Thigh_2.Bk"
 bone_idx = 18
 
-[node name="Chassis_Con_001" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Bk" unique_id=930714190]
+[node name="Chassis_Con_001" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Bk" unique_id=609874013]
 transform = Transform3D(-0.9999478, -0.010106399, -0.0016516042, -0.009237097, 0.9597886, -0.28057215, 0.0044207643, -0.2805421, -0.95983183, 0.011996259, -0.28392142, -1.043192)
 mesh = SubResource("ArrayMesh_mgnph")
 
-[node name="Thigh_001" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Bk" unique_id=2032167974]
+[node name="Thigh_001" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Bk" unique_id=1118898145]
 transform = Transform3D(-0.9999478, -0.010106399, -0.0016516042, -0.009237097, 0.9597886, -0.28057215, 0.0044207643, -0.2805421, -0.95983183, 0.011996259, -0.28392142, -1.043192)
 mesh = SubResource("ArrayMesh_ht6n6")
 
-[node name="Thigh_Joint_001" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_2_Bk" unique_id=899689850]
+[node name="Thigh_Joint_001" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_2_Bk" unique_id=12333831]
 transform = Transform3D(-0.9999478, -0.010106399, -0.0016516042, -0.009237097, 0.9597886, -0.28057215, 0.0044207643, -0.2805421, -0.95983183, 0.011996259, -0.28392142, -1.043192)
 mesh = SubResource("ArrayMesh_pp6ip")
 
-[node name="Shin_1_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1337984709]
-transform = Transform3D(0.7802454, 0.24142432, 0.5770017, 0.019385627, -0.9313948, 0.3634924, 0.62517315, -0.27242786, -0.7313968, 1.0762008, 1.3838048, -1.2460716)
+[node name="Shin_1_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1409161105]
+transform = Transform3D(0.70801485, 0.4264913, 0.56286776, 0.08312498, -0.8418294, 0.5333032, 0.7012888, -0.33079827, -0.63147956, 1.1855652, 1.3700979, -1.1907395)
 bone_name = "Shin_1.Bk"
 bone_idx = 23
 
-[node name="Shin_Joint" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Shin_1_Bk" unique_id=1801124713]
+[node name="Shin_Joint" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Shin_1_Bk" unique_id=1770721517]
 transform = Transform3D(0.7319486, 0.021869035, 0.681009, 0.3585805, -0.8622426, -0.35771358, 0.5793716, 0.5060248, -0.6389586, -0.08557458, 0.4729898, -2.022294)
 mesh = SubResource("ArrayMesh_uwhrs")
 
-[node name="Thigh_1_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=2084118112]
-transform = Transform3D(-0.7704695, 0.23669511, 0.59190524, -0.002140235, 0.9275468, -0.3736998, -0.6374731, -0.2891912, -0.71414024, 0.71785766, -0.02044852, -0.8082526)
+[node name="Thigh_1_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1879666341]
+transform = Transform3D(-0.722553, 0.27170342, 0.6356842, -0.0031633775, 0.91821885, -0.39605984, -0.6913085, -0.288185, -0.6626024, 0.7742214, -0.020033464, -0.7544438)
 bone_name = "Thigh_1.Bk"
 bone_idx = 22
 
-[node name="Chassis_Con" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Bk" unique_id=1514812458]
+[node name="Chassis_Con" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Bk" unique_id=61983944]
 transform = Transform3D(-0.72255313, -0.003163364, -0.6913082, 0.19186245, 0.9597891, -0.20492594, 0.66415805, -0.28070602, -0.69289136, 0.03779906, -0.28392133, -1.0425768)
 mesh = SubResource("ArrayMesh_832yb")
 
-[node name="Thigh" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Bk" unique_id=1550998260]
+[node name="Thigh" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Bk" unique_id=1255039376]
 transform = Transform3D(-0.72255313, -0.003163364, -0.6913082, 0.19186245, 0.9597891, -0.20492594, 0.66415805, -0.28070602, -0.69289136, 0.03779906, -0.28392133, -1.0425768)
 mesh = SubResource("ArrayMesh_g3348")
 
-[node name="Thigh_Joint" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Thigh_1_Bk" unique_id=770503317]
+[node name="Thigh_Joint" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Thigh_1_Bk" unique_id=1003152066]
 transform = Transform3D(-0.72255313, -0.003163364, -0.6913082, 0.19186245, 0.9597891, -0.20492594, 0.66415805, -0.28070602, -0.69289136, 0.03779906, -0.28392133, -1.0425768)
 mesh = SubResource("ArrayMesh_crmbu")
 
-[node name="Bone_Bk" type="BoneAttachment3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1603950791]
+[node name="Root" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1389366234]
 transform = Transform3D(0, -5.9604627e-08, -0.9999999, -5.9604638e-08, -0.99999976, 5.9604634e-08, -0.99999994, 5.9604627e-08, 0, 0, 1.3625717, -2.483527e-09)
-bone_name = "Bone.Bk"
+bone_name = "Root"
 bone_idx = 0
 
-[node name="Chassis" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Bone_Bk" unique_id=568321418]
+[node name="Chassis" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Root" unique_id=56763458]
 transform = Transform3D(0, 5.960468e-08, -1.0000001, -5.960467e-08, -1.0000002, -5.960467e-08, -1.0000001, 5.960468e-08, 3.5527166e-15, -2.4835272e-09, 1.3625721, 1.0855842e-16)
 mesh = SubResource("ArrayMesh_5n8xv")
 
-[node name="ChassisFloater" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Bone_Bk" unique_id=144889031]
+[node name="ChassisFloater" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Root" unique_id=1163358422]
 transform = Transform3D(0, 5.960468e-08, -1.0000001, -5.960467e-08, -1.0000002, -5.960467e-08, -1.0000001, 5.960468e-08, 3.5527166e-15, -2.4835272e-09, 1.3625721, 1.0855842e-16)
 mesh = SubResource("ArrayMesh_w3fkg")
 
-[node name="Gem" type="MeshInstance3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D/Bone_Bk" unique_id=2095892537]
+[node name="Gem" type="MeshInstance3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D/Root" unique_id=827568513]
 transform = Transform3D(0, 5.960468e-08, -1.0000001, -5.960467e-08, -1.0000002, -5.960467e-08, -1.0000001, 5.960468e-08, 3.5527166e-15, -2.4835272e-09, 1.3625721, 1.0855842e-16)
 mesh = SubResource("ArrayMesh_llu7x")
 
-[node name="CCDIK3D" type="CCDIK3D" parent="SmallEnemySpiderReRigged/SpiderArmature/Skeleton3D" unique_id=1250481778]
+[node name="CCDIK3D" type="CCDIK3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1697695894]
 setting_count = 6
-settings/0/target_node = NodePath("../../../../Leg_1_Target_Fr")
-settings/1/target_node = NodePath("../../../../Leg_2_Target_Fr")
-settings/2/target_node = NodePath("../../../../Leg_3_Target_Fr")
-settings/3/target_node = NodePath("../../../../Leg_3_Target_Bk")
-settings/4/target_node = NodePath("../../../../Leg_2_Target_Bk")
-settings/5/target_node = NodePath("../../../../Leg_1_Target_Bk")
+settings/0/target_node = NodePath("../../../TargetParent/Target_1_Fr")
+settings/1/target_node = NodePath("../../../TargetParent/Target_2_Fr")
+settings/2/target_node = NodePath("../../../TargetParent/Target_3_Fr")
+settings/3/target_node = NodePath("../../../TargetParent/Target_3_Bk")
+settings/4/target_node = NodePath("../../../TargetParent/Target_2_Bk")
+settings/5/target_node = NodePath("../../../TargetParent/Target_1_Bk")
 settings/0/root_bone_name = "Fake_1.Fr"
 settings/0/root_bone = 1
-settings/0/end_bone_name = "Foot.003.Fr"
+settings/0/end_bone_name = "Foot_1.Fr"
 settings/0/end_bone = 4
 settings/0/extend_end_bone = false
 settings/0/joint_count = 4
 settings/1/root_bone_name = "Fake_2.Fr"
 settings/1/root_bone = 5
-settings/1/end_bone_name = "Foot.004.Fr"
+settings/1/end_bone_name = "Foot_2.Fr"
 settings/1/end_bone = 8
 settings/1/extend_end_bone = false
 settings/1/joint_count = 4
 settings/2/root_bone_name = "Fake_3.Fr"
 settings/2/root_bone = 9
-settings/2/end_bone_name = "Foot.005.Fr"
+settings/2/end_bone_name = "Foot_3.Fr"
 settings/2/end_bone = 12
 settings/2/extend_end_bone = false
 settings/2/joint_count = 4
 settings/3/root_bone_name = "Fake_3.Bk"
 settings/3/root_bone = 13
-settings/3/end_bone_name = "Foot.Bk"
+settings/3/end_bone_name = "Foot_3.Bk"
 settings/3/end_bone = 16
 settings/3/extend_end_bone = false
 settings/3/joint_count = 4
 settings/4/root_bone_name = "Fake_2.Bk"
 settings/4/root_bone = 17
-settings/4/end_bone_name = "Foot.001.Bk"
+settings/4/end_bone_name = "Foot_2.Bk"
 settings/4/end_bone = 20
 settings/4/extend_end_bone = false
 settings/4/joint_count = 4
 settings/5/root_bone_name = "Fake_1.Bk"
 settings/5/root_bone = 21
-settings/5/end_bone_name = "Foot.002.Bk"
+settings/5/end_bone_name = "Foot_1.Bk"
 settings/5/end_bone = 24
 settings/5/extend_end_bone = false
 settings/5/joint_count = 4
 settings/0/joints/0/rotation_axis = 2
-settings/0/joints/0/limitation = SubResource("JointLimitationCone3D_3dogw")
+settings/0/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/0/joints/0/limitation/right_axis = 0
 settings/0/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/0/joints/1/rotation_axis = 0
-settings/0/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/0/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/0/joints/1/limitation/right_axis = 0
 settings/0/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/0/joints/2/rotation_axis = 0
-settings/0/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/0/joints/2/rotation_axis = 3
+settings/0/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/0/joints/2/limitation/right_axis = 0
 settings/0/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/0/joints/3/rotation_axis = 3
-settings/0/joints/3/limitation = null
+settings/0/joints/3/limitation = SubResource("JointLimitationCone3D_rdbpf")
+settings/0/joints/3/limitation/right_axis = 0
+settings/0/joints/3/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/1/joints/0/rotation_axis = 2
-settings/1/joints/0/limitation = SubResource("JointLimitationCone3D_r5l72")
+settings/1/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/1/joints/0/limitation/right_axis = 0
 settings/1/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/1/joints/1/rotation_axis = 0
-settings/1/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/1/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/1/joints/1/limitation/right_axis = 0
 settings/1/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/1/joints/2/rotation_axis = 0
-settings/1/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/1/joints/2/rotation_axis = 3
+settings/1/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/1/joints/2/limitation/right_axis = 0
 settings/1/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/1/joints/3/rotation_axis = 3
 settings/1/joints/3/limitation = null
 settings/2/joints/0/rotation_axis = 2
-settings/2/joints/0/limitation = SubResource("JointLimitationCone3D_3dogw")
+settings/2/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/2/joints/0/limitation/right_axis = 0
 settings/2/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/2/joints/1/rotation_axis = 0
-settings/2/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/2/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/2/joints/1/limitation/right_axis = 0
 settings/2/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/2/joints/2/rotation_axis = 0
-settings/2/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/2/joints/2/rotation_axis = 3
+settings/2/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/2/joints/2/limitation/right_axis = 0
 settings/2/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/2/joints/3/rotation_axis = 3
 settings/2/joints/3/limitation = null
 settings/3/joints/0/rotation_axis = 2
-settings/3/joints/0/limitation = SubResource("JointLimitationCone3D_3dogw")
+settings/3/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/3/joints/0/limitation/right_axis = 0
 settings/3/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/3/joints/1/rotation_axis = 0
-settings/3/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/3/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/3/joints/1/limitation/right_axis = 0
 settings/3/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/3/joints/2/rotation_axis = 0
-settings/3/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/3/joints/2/rotation_axis = 3
+settings/3/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/3/joints/2/limitation/right_axis = 0
 settings/3/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/3/joints/3/rotation_axis = 3
 settings/3/joints/3/limitation = null
 settings/4/joints/0/rotation_axis = 2
-settings/4/joints/0/limitation = SubResource("JointLimitationCone3D_3dogw")
+settings/4/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/4/joints/0/limitation/right_axis = 0
 settings/4/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/4/joints/1/rotation_axis = 0
-settings/4/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/4/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/4/joints/1/limitation/right_axis = 0
 settings/4/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/4/joints/2/rotation_axis = 0
-settings/4/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/4/joints/2/rotation_axis = 3
+settings/4/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/4/joints/2/limitation/right_axis = 0
 settings/4/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/4/joints/3/rotation_axis = 3
 settings/4/joints/3/limitation = null
 settings/5/joints/0/rotation_axis = 2
-settings/5/joints/0/limitation = SubResource("JointLimitationCone3D_3dogw")
+settings/5/joints/0/limitation = SubResource("JointLimitationCone3D_hb2xm")
 settings/5/joints/0/limitation/right_axis = 0
 settings/5/joints/0/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/5/joints/1/rotation_axis = 0
-settings/5/joints/1/limitation = SubResource("JointLimitationCone3D_50ct6")
+settings/5/joints/1/limitation = SubResource("JointLimitationCone3D_ak5v8")
 settings/5/joints/1/limitation/right_axis = 0
 settings/5/joints/1/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
-settings/5/joints/2/rotation_axis = 0
-settings/5/joints/2/limitation = SubResource("JointLimitationCone3D_hb2xm")
+settings/5/joints/2/rotation_axis = 3
+settings/5/joints/2/limitation = SubResource("JointLimitationCone3D_x033f")
 settings/5/joints/2/limitation/right_axis = 0
 settings/5/joints/2/limitation/rotation_offset = Quaternion(0, 0, 0, 1)
 settings/5/joints/3/rotation_axis = 3
 settings/5/joints/3/limitation = null
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SmallEnemySpiderReRigged" unique_id=278677557]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.39999998, 0)
+[node name="SmallEnemySpiderReRigged" type="CharacterBody3D" parent="SpiderChassisParent" unique_id=326157489 node_paths=PackedStringArray("gait_controller")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16514373, 0)
+collision_layer = 2
+script = ExtResource("2_50ct6")
+gait_controller = NodePath("../SpiderVisual")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged" unique_id=278677557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25954413, 0.39999998, 0)
 shape = SubResource("CapsuleShape3D_50ct6")
 
-[node name="Leg_1_Raycast_Fr" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=840333759 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 1.362, 2)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_1_Target_Fr")
-group = 1
+[node name="Raycast" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged" unique_id=247101638]
 
-[node name="Leg_2_Raycast_Fr" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=460338526 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 1.309, 2.707)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_2_Target_Fr")
-group = 3
+[node name="Raycast_3_Bk" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=1500304325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.8, -1.9)
 
-[node name="Leg_3_Raycast_Fr" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=618389454 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8558886, 1.305126, 1.7987789)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_3_Target_Fr")
-group = 2
+[node name="Raycast_2_Bk" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=1178114211]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20000005, 1.8, -2.6)
 
-[node name="Leg_3_Raycast_Bk" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=1813811647 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.861563, 1.3061539, -1.8955505)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_3_Target_Bk")
-group = 1
+[node name="Raycast_1_Bk" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=2036821746]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 1.8, -1.8999999)
 
-[node name="Leg_2_Raycast_Bk" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=2044214363 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.027337134, 1.355483, -2.6047056)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_2_Target_Bk")
-group = 3
+[node name="Raycast_1_Fr" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=956375222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 1.8, 1.8000002)
 
-[node name="Leg_1_Raycast_Bk" type="Node3D" parent="SmallEnemySpiderReRigged" unique_id=583452850 node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8768249, 1.3837321, -1.8457791)
-script = ExtResource("3_50ct6")
-target = NodePath("../../Leg_1_Target_Bk")
-group = 2
+[node name="Raycast_2_Fr" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=1153015694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19999993, 1.8, 2.5000002)
 
-[node name="Leg_1_Target_Fr" type="Node3D" parent="." unique_id=1265539867]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8632724, 0.052805305, 1.9592918)
+[node name="Raycast_3_Fr" type="Node3D" parent="SpiderChassisParent/SmallEnemySpiderReRigged/Raycast" unique_id=84580600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6000001, 1.8, 1.8000002)
 
-[node name="Leg_2_Target_Fr" type="Node3D" parent="." unique_id=1556435437]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.011814833, 0.052805305, 2.765227)
+[node name="TargetParent" type="Node3D" parent="SpiderChassisParent" unique_id=805050489]
 
-[node name="Leg_3_Target_Fr" type="Node3D" parent="." unique_id=207774031]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8362238, 0.052805305, 1.8193924)
+[node name="Target_3_Bk" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=1638951102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, -0.4348563, -1.9)
 
-[node name="Leg_3_Target_Bk" type="Node3D" parent="." unique_id=1399455705]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8362238, 0.052805305, -1.8192904)
+[node name="Target_2_Bk" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=1396955770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20000005, -0.4348563, -2.6)
 
-[node name="Leg_2_Target_Bk" type="Node3D" parent="." unique_id=922784410]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.011814833, 0.052805305, -2.5490541)
+[node name="Target_1_Bk" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=632056984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, -0.4348563, -1.8999999)
 
-[node name="Leg_1_Target_Bk" type="Node3D" parent="." unique_id=1019926116]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8430007, 0.052805305, -1.8294262)
+[node name="Target_1_Fr" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=60896235]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, -0.4348563, 1.8000002)
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=891631093]
-transform = Transform3D(0.37866142, -0.6980264, 0.60776204, 0, 0.6566601, 0.75418675, -0.92553526, -0.28558144, 0.24865185, 8.845065, 11.642025, 4.4539394)
+[node name="Target_2_Fr" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=635137621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19999993, -0.4348563, 2.5000002)
+
+[node name="Target_3_Fr" type="Node3D" parent="SpiderChassisParent/TargetParent" unique_id=1654789823]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6000001, -0.4348563, 1.8000002)
