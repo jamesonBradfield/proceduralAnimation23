@@ -77,8 +77,4 @@ func _physics_process(delta: float) -> void:
 		_ray_query.to = _ray_query.from + (target_dir * ray_length)	
 		var result = space_state.intersect_ray(_ray_query)
 		if result:
-				# Check if we are hitting something valid
-				print("Leg Hit: ", result["collider"].name, " at ", result["position"])
 				limb.target.global_position = limb.solver.update(delta, result["position"])
-		else:
-			print("Leg Missed! Origin: ", _ray_query.from)
