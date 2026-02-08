@@ -14,6 +14,7 @@ class Limb:
 
 @export_group("References")
 @export var ghost_target: Node3D
+# the code for finding this can be removed into generic nodes that will organize the children by our naming prefix ensuring we can loop through indexes and know each has the needed data without putting it here.
 @export var target_parent: Node3D
 @export var raycast_parent: Node3D
 
