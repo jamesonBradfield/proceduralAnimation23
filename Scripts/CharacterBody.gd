@@ -3,7 +3,6 @@ extends CharacterBody3D
 
 var speed = 5.0
 var jump_velocity = 4.5
-@export var gait_controller : GaitController
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
 	if not is_on_floor():
@@ -23,6 +22,4 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0, speed)
 		velocity.z = move_toward(velocity.z, 0, speed)
-	var flat_vel = Vector3(velocity.x,0,velocity.z)
-	gait_controller.controller_velocity = flat_vel
 	move_and_slide()
