@@ -1,4 +1,4 @@
-# ==============================================================================
+#==============================================================================
 # THE "NO-NONSENSE" GAIT CONTROLLER MANIFESTO
 # ==============================================================================
 #
@@ -48,6 +48,7 @@
 #    - F*** you, future self. You're welcome.
 #
 # ==============================================================================
+#endregion
 @tool
 class_name GaitController
 extends Node3D
@@ -82,7 +83,7 @@ extends Node3D
 @export var snap_to_ground_now: bool:
 	set(val):
 		if is_node_ready():
-			snap_targets_to_ground(true, 2.0)
+			cast_ground_rays(true, 2.0)
 
 var targets: Array[Node3D]
 
@@ -137,7 +138,7 @@ func _ready() -> void:
 
 	apply_offsets()
 	# One-shot snap to ground on start
-	call_deferred("snap_targets_to_ground", true, 2.0)
+	call_deferred("cast_ground_rays", true, 2.0)
 
 
 func apply_offsets() -> void:
@@ -153,7 +154,7 @@ func apply_offsets() -> void:
 		raycasts[index] = to_local(leg_relative_pos)
 
 
-func snap_targets_to_ground(apply_to_targets: bool = true, duration: float = 0.0) -> void:
+func cast_ground_rays(snap_to_ground: bool = true, duration: float = 0.0) -> void:
 	if targets.size() != thighs.size():
 		return
 	var space_state = get_world_3d().direct_space_state
@@ -176,7 +177,7 @@ func snap_targets_to_ground(apply_to_targets: bool = true, duration: float = 0.0
 		var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
 		var result := space_state.intersect_ray(query)
 
-		if apply_to_targets:
+		if snap_to_ground:
 			if result:
 				targets[index].global_position = result.position
 			else:
@@ -193,7 +194,7 @@ func snap_targets_to_ground(apply_to_targets: bool = true, duration: float = 0.0
 
 			# Draw the Baked Origin Axis to prove it rotates with the body
 			var origin_transform := Transform3D(global_transform.basis, hip_center)
-			DebugDraw3D.draw_gizmo(origin_transform, Color.ORANGE, true)
+			DebugDraw3D.draw_sphere(origin_transform.origin, 0.1, Color.ORANGE_RED, duration)
 
 			# Draw the ACTUAL target position (where the foot currently is)
 			DebugDraw3D.draw_sphere(targets[index].global_position, 0.15, Color.MAGENTA, duration)
@@ -207,4 +208,4 @@ func _physics_process(delta: float) -> void:
 		return
 
 	if continuous_snap or debug_draw:
-		snap_targets_to_ground(continuous_snap, 0.0)
+		cast_ground_rays(continuous_snap, 0.0)

@@ -1012,7 +1012,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 metadata/_edit_lock_ = true
 
 [node name="SpiderVisual" type="Node3D" parent="SpiderChassisParent" unique_id=858160628 node_paths=PackedStringArray("thighs", "ik_solver", "follow_target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.050311, 0.66514343, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.05031, 0.6651437, 0)
 top_level = true
 script = ExtResource("2_hb2xm")
 thighs = [NodePath("Skeleton3D/Thigh_1_Fr"), NodePath("Skeleton3D/Thigh_2_Fr"), NodePath("Skeleton3D/Thigh_3_Fr"), NodePath("Skeleton3D/Thigh_3_Bk"), NodePath("Skeleton3D/Thigh_2_Bk"), NodePath("Skeleton3D/Thigh_1_Bk")]
@@ -1020,12 +1020,10 @@ raycast_offset = Vector3(0, 1.615, 1.37)
 global_raycast_shift = Vector3(0, -0.145, 0)
 ik_solver = NodePath("Skeleton3D/CCDIK3D")
 mechanical_linkage = Array[ExtResource("3_hb2xm")]([SubResource("Resource_ak5v8"), SubResource("Resource_rdbpf"), SubResource("Resource_d3awe"), SubResource("Resource_bwjpn")])
-base_step_distance = 1.2
-velocity_stride_factor = 1.0
 follow_target = NodePath("../SmallEnemySpiderReRigged")
 ray_length = 5.33
 ray_start_buffer = 0.0
-debug_draw = false
+snap_to_ground_now = null
 
 [node name="Skeleton3D" type="Skeleton3D" parent="SpiderChassisParent/SpiderVisual" unique_id=1021706005]
 bones/0/name = "Root"
@@ -1205,7 +1203,7 @@ bones/24/rotation = Quaternion(0.3877519, -1.5372694e-07, 0.41326964, 0.8239276)
 bones/24/scale = Vector3(0.9999999, 0.99999994, 0.9999999)
 
 [node name="Shin_1_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=726373577]
-transform = Transform3D(-0.7614063, 0.29937005, 0.575011, 0.0023355586, -0.8857138, 0.4642251, 0.64827055, 0.35480696, 0.67368907, 1.2873341, 1.281815, 1.3339)
+transform = Transform3D(-0.76138115, 0.29968858, 0.5748786, 0.0023757713, -0.88544583, 0.46473607, 0.64830023, 0.3552071, 0.6734497, 1.2862613, 1.2828164, 1.3325889)
 bone_name = "Shin_1.Fr"
 bone_idx = 3
 
@@ -1214,7 +1212,7 @@ transform = Transform3D(-0.7408087, -0.028235473, 0.6711226, 0.35771376, -0.8622
 mesh = SubResource("ArrayMesh_gk8qw")
 
 [node name="Thigh_1_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1257899956]
-transform = Transform3D(0.7610127, 0.3519884, 0.5449435, -0.03296952, 0.85990584, -0.5093862, -0.64789844, 0.36968288, 0.66600436, 0.75444365, -0.02003362, 0.7742211)
+transform = Transform3D(0.76101285, 0.35127977, 0.5454006, -0.032969527, 0.86056733, -0.5082681, -0.64789855, 0.36881685, 0.66648436, 0.75444365, -0.02003362, 0.7742211)
 bone_name = "Thigh_1.Fr"
 bone_idx = 2
 
@@ -1231,7 +1229,7 @@ transform = Transform3D(0.761013, -0.032969575, -0.6478986, 0.20492606, 0.959789
 mesh = SubResource("ArrayMesh_4a4ec")
 
 [node name="Shin_2_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1862711498]
-transform = Transform3D(-0.9999204, -0.008368289, 0.009452168, 0.01180125, -0.8855366, 0.4644187, 0.0044838004, 0.46449363, 0.88556474, -0.0077595343, 1.2817098, 1.8538761)
+transform = Transform3D(-0.9999201, -0.008378798, 0.009472306, 0.011821419, -0.8853797, 0.46471715, 0.0044927653, 0.46479273, 0.88540787, -0.0077236746, 1.2825758, 1.8524156)
 bone_name = "Shin_2.Fr"
 bone_idx = 7
 
@@ -1240,7 +1238,7 @@ transform = Transform3D(-0.99990666, 0.0074458295, 0.011465223, -0.00061306625, 
 mesh = SubResource("ArrayMesh_aioeo")
 
 [node name="Thigh_2_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1529368698]
-transform = Transform3D(0.99976826, 0.0041119587, -0.021116214, -0.014316078, 0.8598362, -0.51036763, 0.016057936, 0.5105518, 0.8596966, -0.013984809, -0.020033557, 1.0809295)
+transform = Transform3D(0.9997685, 0.004135645, -0.021111596, -0.014316081, 0.86040825, -0.5094031, 0.01605794, 0.5095871, 0.8602689, -0.013984809, -0.020033557, 1.0809295)
 bone_name = "Thigh_2.Fr"
 bone_idx = 6
 
@@ -1257,7 +1255,7 @@ transform = Transform3D(0.9997687, -0.014316146, 0.016057849, 0.0092372205, 0.95
 mesh = SubResource("ArrayMesh_lleep")
 
 [node name="Shin_3_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=526032972]
-transform = Transform3D(-0.6096714, -0.34692287, -0.7127025, -0.037519038, -0.88549626, 0.46312863, -0.79176575, 0.3090963, 0.5268454, -1.3256836, 1.2826953, 1.2937124)
+transform = Transform3D(-0.60967374, -0.3470661, -0.71263075, -0.037529923, -0.88539815, 0.46331507, -0.7917633, 0.30921614, 0.5267787, -1.3256829, 1.2826958, 1.2937117)
 bone_name = "Shin_3.Fr"
 bone_idx = 11
 
@@ -1266,7 +1264,7 @@ transform = Transform3D(-0.62713253, -0.06133439, -0.77649426, -0.35858047, -0.8
 mesh = SubResource("ArrayMesh_dmenx")
 
 [node name="Thigh_3_Fr" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1797905231]
-transform = Transform3D(0.66758865, -0.36425543, -0.64934045, -0.025421623, 0.860487, -0.50883704, 0.74409616, 0.35620105, 0.56519145, -0.7742214, -0.020033408, 0.75444394)
+transform = Transform3D(0.66758865, -0.364255, -0.6493407, -0.02542162, 0.86048734, -0.50883645, 0.74409616, 0.35620067, 0.5651917, -0.7742214, -0.020033408, 0.75444394)
 bone_name = "Thigh_3.Fr"
 bone_idx = 10
 
@@ -1283,7 +1281,7 @@ transform = Transform3D(0.66758883, -0.025421545, 0.74409604, -0.19186239, 0.959
 mesh = SubResource("ArrayMesh_dpomq")
 
 [node name="Shin_3_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=303156405]
-transform = Transform3D(0.7062267, -0.32478046, -0.62909544, 0.007290017, -0.8851874, 0.46517557, -0.7079485, -0.33310568, -0.6227752, -1.3050323, 1.2832383, -1.3130686)
+transform = Transform3D(0.706231, -0.32457668, -0.6291956, 0.00727782, -0.885342, 0.46488106, -0.70794386, -0.3328928, -0.62289405, -1.3058233, 1.282564, -1.3138894)
 bone_name = "Shin_3.Bk"
 bone_idx = 15
 
@@ -1292,7 +1290,7 @@ transform = Transform3D(0.702468, 0.0045461985, -0.711701, -0.35771355, -0.86224
 mesh = SubResource("ArrayMesh_c2ykx")
 
 [node name="Thigh_3_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=2037167577]
-transform = Transform3D(-0.7147064, -0.3636784, -0.59743834, -0.012805631, 0.8608459, -0.5087034, 0.6993073, -0.355923, -0.61990947, -0.75444376, -0.020033624, -0.7742213)
+transform = Transform3D(-0.7147063, -0.36420083, -0.59712005, -0.012805632, 0.86040056, -0.50945604, 0.6993072, -0.35646513, -0.6195979, -0.75444376, -0.020033624, -0.7742213)
 bone_name = "Thigh_3.Bk"
 bone_idx = 14
 
@@ -1309,7 +1307,7 @@ transform = Transform3D(-0.7147063, -0.012805717, 0.69930744, -0.20492592, 0.959
 mesh = SubResource("ArrayMesh_rxpdu")
 
 [node name="Shin_2_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=447396401]
-transform = Transform3D(0.9999928, 0.0014106221, -0.0034102772, 0.0028338486, -0.8854561, 0.46471462, -0.0023641968, -0.46472096, -0.88545406, 0.0021010581, 1.282028, -1.8532753)
+transform = Transform3D(0.9999928, 0.0014133654, -0.0034167606, 0.0028399024, -0.88533604, 0.4649427, -0.0023679312, -0.46494922, -0.88533413, 0.0020943591, 1.2825474, -1.8523988)
 bone_name = "Shin_2.Bk"
 bone_idx = 19
 
@@ -1318,7 +1316,7 @@ transform = Transform3D(0.9999843, 0.0033796167, -0.004543074, 0.0006130042, -0.
 mesh = SubResource("ArrayMesh_j7x3g")
 
 [node name="Thigh_2_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1651924168]
-transform = Transform3D(-0.99994725, -0.007849681, 0.0065764915, -0.010106374, 0.8600465, -0.5101155, -0.00165176, -0.5101552, -0.8600806, 0.013985029, -0.020033496, -1.0809292)
+transform = Transform3D(-0.99994737, -0.007854106, 0.006571208, -0.010106374, 0.8603896, -0.5095366, -0.0016517618, -0.5095762, -0.86042386, 0.013985029, -0.020033496, -1.0809292)
 bone_name = "Thigh_2.Bk"
 bone_idx = 18
 
@@ -1335,7 +1333,7 @@ transform = Transform3D(-0.9999478, -0.010106399, -0.0016516042, -0.009237097, 0
 mesh = SubResource("ArrayMesh_pp6ip")
 
 [node name="Shin_1_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1409161105]
-transform = Transform3D(0.7367519, 0.3212751, 0.59496117, 0.011150809, -0.8855607, 0.4643884, 0.67607164, -0.3355049, -0.6560208, 1.3059044, 1.2814523, -1.316112)
+transform = Transform3D(0.73674697, 0.32158464, 0.5947999, 0.011161043, -0.8853257, 0.4648357, 0.6760767, -0.33582798, -0.6558503, 1.3046535, 1.2825235, -1.3148096)
 bone_name = "Shin_1.Bk"
 bone_idx = 23
 
@@ -1344,7 +1342,7 @@ transform = Transform3D(0.7319486, 0.021869035, 0.681009, 0.3585805, -0.8622426,
 mesh = SubResource("ArrayMesh_uwhrs")
 
 [node name="Thigh_1_Bk" type="BoneAttachment3D" parent="SpiderChassisParent/SpiderVisual/Skeleton3D" unique_id=1879666341]
-transform = Transform3D(-0.722553, 0.3511907, 0.5954681, -0.0031633775, 0.85966605, -0.510846, -0.6913085, -0.37099686, -0.62004346, 0.7742214, -0.020033464, -0.7544438)
+transform = Transform3D(-0.7225529, 0.35036448, 0.59595454, -0.003163379, 0.8603736, -0.50965315, -0.69130844, -0.3701366, -0.6205574, 0.7742214, -0.020033464, -0.7544438)
 bone_name = "Thigh_1.Bk"
 bone_idx = 22
 
