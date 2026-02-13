@@ -1,211 +1,226 @@
-#==============================================================================
-# THE "NO-NONSENSE" GAIT CONTROLLER MANIFESTO
+# ==============================================================================
+# GAIT CONTROLLER — Architecture Rationale
 # ==============================================================================
 #
-# DEAR FUTURE JAMIE:
+# 1. NAMING CONVENTION = IMPLICIT BINDING
+#    "Thigh.L" -> "Target.L" -> "Foot.L". No drag-and-drop wiring needed.
 #
-# If you are reading this, you are probably tempted to refactor this into
-# "manageable components" or add "helper nodes" in the editor.
+# 2. RUNTIME GENERATION
+#    All targets/solvers are built in _ready(). Nothing saved to .tscn,
+#    so no stale transforms or accidental editor edits.
 #
-# STOP. READ THIS FIRST.
+# 3. TOTAL DATA OWNERSHIP
+#    This script OWNS foot state — we tell the scene tree where the foot
+#    is, not the other way around. Enables hot-swapping gaits and speeds.
 #
-# This system was built this way for 7 very specific reasons.
-# Do not touch it unless you understand WHY it exists.
-#
-# 1. THE NAMING CONVENTION IS LAW.
-#    - We rely on implicit binding. "Thigh.L" -> "Target.L" -> "Raycast.L".
-#    - There is no "Drag and Drop" hell. If the bone exists, the leg works.
-#
-# 2. INFINITE SCALABILITY.
-#    - This script doesn't know what a "Biped" or "Quadruped" is.
-#    - It just knows "Thighs".
-#    - Want a centipede? Add bones to the array. The loop handles the rest.
-#
-# 3. EDITOR HYGIENE.
-#    - The Scene Tree in the editor is clean.
-#    - No "Leg_01", "Target_01", "Solver_01" cluttering the view.
-#    - We avoid the "Godot Node Sprawl" that makes levels unreadable.
-#
-# 4. RUNTIME GENERATION.
-#    - The Scene Tree is constructed at runtime (`_ready()`).
-#    - This ensures a fresh state every launch. No "stale transforms" saved
-#      accidentally in the .tscn file.
-#
-# 5. IDIOT-PROOFING (EDITOR SAFETY).
-#    - You cannot accidentally move a Target Node in the editor because
-#      THEY DON'T EXIST in the editor.
-#    - The logic is locked in code. You cannot break the rig by clicking wrong.
-#
-# 6. TOTAL DATA OWNERSHIP (THE HOLY GRAIL).
-#    - Because we generate the targets programmatically, this script OWNS the state.
-#    - We don't ask the scene tree "Where is the foot?". We TELL it.
-#    - This allows us to swap Gaits, Math Profiles, and Speeds instantly
-#      without fighting the physics engine or node hierarchy.
-#
-# 7. CONCLUSION.
-#    - This code rocks. It is efficient, modular, and clean.
-#    - If you broke it, that's a skill issue.
-#    - F*** you, future self. You're welcome.
+# Creature-agnostic: biped, quadruped, centipede — just add "Thigh*"
+# BoneAttachment3D nodes and the loop handles the rest.
 #
 # ==============================================================================
-#endregion
 @tool
 class_name GaitController
 extends Node3D
 
-@export var thighs: Array[Node3D]
-@export var target_offset: Vector3:
-	set(new_value):
-		target_offset = new_value
-		if is_node_ready():
-			apply_offsets()
-@export var raycast_offset: Vector3:
-	set(new_value):
-		raycast_offset = new_value
-		if is_node_ready():
-			apply_offsets()
-@export var global_raycast_shift: Vector3 = Vector3.ZERO
-@export var ik_solver: CCDIK3D
-@export var mechanical_linkage: Array[MechanicalLinkage]
+@export_group("Setup")
+var skeleton: Skeleton3D
+@export var leg_config: LegConfig:
+	set(val):
+		# Standard "Disconnect Old / Connect New" boilerplate
+		if leg_config != val:
+			if leg_config and leg_config.changed.is_connected(_on_leg_config_changed):
+				leg_config.changed.disconnect(_on_leg_config_changed)
+			leg_config = val
+			if leg_config:
+				if not leg_config.changed.is_connected(_on_leg_config_changed):
+					leg_config.changed.connect(_on_leg_config_changed)
 
-@export_group("Body Dynamics")
-@export var follow_target: Node3D
-@export var frequency: float = 2.5
-@export var damping: float = 0.5
-@export var response: float = 0.0
+			# If we are running, immediately rebuild the solver
+			if is_node_ready():
+				_on_leg_config_changed()
 
-@export_group("Physics & Debug")
-
-@export var ray_length: float = 3.0
-@export var ray_start_buffer: float = 1.0
+@export_group("Debug")
 @export var debug_draw: bool = true
 @export var continuous_snap: bool = false
 @export var snap_to_ground_now: bool:
 	set(val):
 		if is_node_ready():
 			cast_ground_rays(true, 2.0)
-
-var targets: Array[Node3D]
-
-var _body_sod: SecondOrderDynamics
-var raycasts: Array[Vector3]
-
+var thighs: Array[BoneAttachment3D] = []
+var legs: Array[Leg] = []
+var _runtime_solver: CCDIK3D  # We own this node now.
 var global_cycle_time: float = 0.0
 
 
 func _ready() -> void:
-	if not ik_solver:
+	# 1. DISCOVERY PHASE
+	_find_skeleton_and_thighs()
+	_rebuild_legs()
+
+	# 2. START SYSTEMS
+	_apply_ik_settings()  # Builds the CCDIK3D node
+	apply_offsets()  # Snaps legs to config positions
+
+	# One-shot snap to ground on start
+	call_deferred("cast_ground_rays", true, 0.0)
+
+
+func _find_skeleton_and_thighs() -> void:
+	assert(get_child_count() >= 1, "GaitController has no children!")
+	skeleton = get_child(0) as Skeleton3D
+	assert(skeleton, "Child 0 is not a Skeleton3D! It is: " + get_child(0).name)
+
+	# FIX: Use assign() to handle the type conversion from Array[Node] to Array[BoneAttachment3D]
+	thighs.assign(skeleton.find_children("Thigh*", "BoneAttachment3D", true, false))
+
+	assert(not thighs.is_empty(), "Skeleton has no 'Thigh' BoneAttachments!")
+
+
+func _rebuild_legs() -> void:
+	# 1. CLEANUP
+	for node in find_children("Target*", "") + find_children("Leg*", ""):
+		node.name = "Trash"
+		node.queue_free()
+
+	# 2. FIX: Use assign() to convert the generic Array from map() into Array[Leg]
+	legs.assign(thighs.map(_create_leg_system))
+
+
+# This is your "Selector" function (like .Select(x => Create(x)))
+func _create_leg_system(thigh: Node3D) -> Leg:
+	var suffix := thigh.name.trim_prefix("Thigh")
+	# A. Create Target
+	var new_target := Marker3D.new()
+	new_target.name = "Target" + suffix
+	new_target.top_level = true
+	add_child(new_target)
+	# B. Create Leg
+	var new_leg := Leg.new(thigh, new_target)
+	new_leg.name = "Leg" + suffix
+	add_child(new_leg)
+
+	return new_leg
+
+
+func _on_leg_config_changed() -> void:
+	if not is_node_ready():
 		return
-	ik_solver.setting_count = thighs.size()
+	_apply_ik_settings()  # <--- REBUILD THE SOLVER
+	apply_offsets()
 
-	if follow_target:
-		_body_sod = SecondOrderDynamics.new(frequency, damping, response, global_position)
-		set_as_top_level(true)
 
-	var suffixes: Array[String] = []
+## THE NUCLEAR OPTION: Destroys and recreates the IK solver.
+## This ensures new constraints (Joint Limits) are actually applied.
+func _apply_ik_settings() -> void:
+	# 1. STRUCTURAL INTEGRITY (The Law)
+	# The Skeleton MUST exist. If it doesn't, the scene tree is broken.
+	assert(skeleton != null, "GaitController: Critical Error - Skeleton node is missing.")
 
-	var bone_suffixes: Array[String] = []
+	# 2. STATE CHECK (The "Not Ready Yet" Guard)
+	# Thighs might be empty while you are configuring the node in the Inspector.
+	# We don't want to crash the editor, just exit gracefully.
+	if thighs.is_empty():
+		return
 
-	# strings/names
+	# 3. DESTROY OLD SOLVER
+	# We kill the old solver to clear internal caches that refuse to update constraints.
+	if is_instance_valid(_runtime_solver):
+		_runtime_solver.active = false
+		_runtime_solver.name = "Trash_IK"  # Prevent name collision in same frame
+		_runtime_solver.queue_free()
+
+	# 4. CREATE NEW SOLVER
+	_runtime_solver = CCDIK3D.new()
+	_runtime_solver.name = "Runtime_CCDIK"
+	# IK nodes MUST be children of the Skeleton to work reliably
+	skeleton.add_child(_runtime_solver)
+
+	# EDITOR HYGIENE: This node is invisible to the Scene Dock.
+	# It will NOT be saved to the .tscn file.
+	_runtime_solver.owner = null
+
+	# 5. CONFIGURE SOLVER (Implicit Binding)
+	_runtime_solver.setting_count = thighs.size()
 	for index in range(thighs.size()):
 		var suffix := thighs[index].name.replace("Thigh", "")
-		suffixes.append(suffix)
-		bone_suffixes.append(suffix.replace("_Fr", ".Fr").replace("_Bk", ".Bk"))
+		# Example: "Thigh.Fr" -> Bone "Fake.Fr" / "Foot.Fr"
+		var bone_suffix := suffix.replace("_Fr", ".Fr").replace("_Bk", ".Bk")
 
-	# nodes
-	for index in range(suffixes.size()):
-		var suffix = suffixes[index]
-		var new_target := Marker3D.new()
-		new_target.name = "Target" + suffix
-		add_child(new_target)
-		new_target.top_level = true
-		targets.append(new_target)
-		raycasts.append(Vector3.ZERO)
-		ik_solver.set_target_node(index, new_target.get_path())
+		_runtime_solver.set_root_bone_name(index, "Fake" + bone_suffix)
+		_runtime_solver.set_end_bone_name(index, "Foot" + bone_suffix)
 
-	# bones
-	for index in range(bone_suffixes.size()):
-		var bone_suffix = bone_suffixes[index]
-		ik_solver.set_root_bone_name(index, "Fake" + bone_suffix)
-		ik_solver.set_end_bone_name(index, "Foot" + bone_suffix)
+		# Link the IK chain to the Target Marker we created in _ready
+		if index < legs.size():
+			_runtime_solver.set_target_node(index, legs[index].target.get_path())
 
-		var limit_count = min(ik_solver.get_joint_count(index), mechanical_linkage.size())
-		for joint_index in range(limit_count):
-			var link = mechanical_linkage[joint_index]
-			ik_solver.set_joint_rotation_axis(index, joint_index, link.rotation_axis)
-			ik_solver.set_joint_limitation_right_axis(index, joint_index, link.right_rotation_axis)
-			ik_solver.set_joint_limitation(index, joint_index, link.joint_limitation)
+	# 6. IGNITION
+	_runtime_solver.active = true
 
-	apply_offsets()
-	# One-shot snap to ground on start
-	call_deferred("cast_ground_rays", true, 2.0)
+	# Force an update of the skeleton to ensure the IK chain is built
+	# This is critical for get_joint_count() to return > 0
+	skeleton.force_update_transform()
+
+	# 7. POST-FLIGHT CHECK (Peace of Mind)
+	# If this fails, your naming convention (Thigh.L -> Foot.L) is broken.
+	if _runtime_solver.active and not thighs.is_empty():
+		assert(
+			_runtime_solver.get_joint_count(0) > 0,
+			"GaitController: IK Solver created but found 0 joints. Check bone naming (Thigh.L -> Foot.L)."
+		)
+
+	# 8. APPLY CONSTRAINTS
+	# We do this AFTER start/update because get_joint_count() relies on the chain being built.
+	if leg_config and leg_config.mechanical_linkage:
+		for index in range(thighs.size()):
+			# Re-verify joint count now that chain should be built
+			var joint_count = _runtime_solver.get_joint_count(index)
+			var limit_count = min(joint_count, leg_config.mechanical_linkage.size())
+
+			for joint_index in range(limit_count):
+				var link = leg_config.mechanical_linkage[joint_index]
+
+				# These setters fail on existing nodes, which is why we nuclear-rebuild
+				_runtime_solver.set_joint_rotation_axis(index, joint_index, link.rotation_axis)
+				_runtime_solver.set_joint_limitation_right_axis(
+					index, joint_index, link.right_rotation_axis
+				)
+				_runtime_solver.set_joint_limitation(index, joint_index, link.joint_limitation)
 
 
 func apply_offsets() -> void:
-	if targets.size() != thighs.size() or raycasts.size() != thighs.size():
+	if not leg_config:
 		return
+	# If legs array is empty but we have children (script reload), try to rebuild it
+	if Engine.is_editor_hint() and legs.is_empty() and get_child_count() > 0:
+		# "Get all children, Keep only Legs, Assign to Array"
+		legs.assign(get_children().filter(func(node): return node is Leg))
 
-	for index in range(targets.size()):
-		# 1. Visual Target (Initial Guess)
-		targets[index].global_position = thighs[index].to_global(target_offset)
+	assert(
+		legs.size() == thighs.size(), "GaitController: Can't apply offsets! legs/thighs mismatch"
+	)
 
-		# 2. BAKE RAYCAST ORIGIN
-		var leg_relative_pos := thighs[index].to_global(raycast_offset)
-		raycasts[index] = to_local(leg_relative_pos)
+	for index in range(legs.size()):
+		var leg = legs[index]
+		# Push Config to Leg
+		leg.config = leg_config
+		# Apply (pass the authoritative thigh reference)
+		leg.apply_offsets(thighs[index])
 
 
 func cast_ground_rays(snap_to_ground: bool = true, duration: float = 0.0) -> void:
-	if targets.size() != thighs.size():
-		return
+	assert(legs.size() == thighs.size(), "GaitController: Can't cast rays legs/thighs mismatch")
 	var space_state = get_world_3d().direct_space_state
 	if not space_state:
 		return
-
-	for index in range(targets.size()):
-		# 1. Retrieve Baked Origin (Rotates with Body)
-		var baked_origin := to_global(raycasts[index])
-
-		# 2. Apply the NEW Global Shift
-		var hip_center := baked_origin + global_raycast_shift
-
-		# 3. Sky Hook (Start High, Shoot Low) using the shifted center
-		var up_vec := global_transform.basis.y
-		var ray_origin := hip_center + (up_vec * ray_start_buffer)
-		var ray_end := hip_center - (up_vec * ray_length)
-
-		# 4. Cast
-		var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
-		var result := space_state.intersect_ray(query)
+	for leg in legs:
+		var result_pos = leg.scan_floor(space_state, global_transform)
 
 		if snap_to_ground:
-			if result:
-				targets[index].global_position = result.position
-			else:
-				targets[index].global_position = ray_end
+			leg.target.global_position = result_pos
 
-		# 5. Debug
 		if debug_draw:
-			var color := Color.GREEN if result else Color.RED
-			DebugDraw3D.draw_line(
-				ray_origin, result.position if result else ray_end, color, duration
-			)
-			if result:
-				DebugDraw3D.draw_sphere(result.position, 0.1, Color.CYAN, duration)
-
-			# Draw the Baked Origin Axis to prove it rotates with the body
-			var origin_transform := Transform3D(global_transform.basis, hip_center)
-			DebugDraw3D.draw_sphere(origin_transform.origin, 0.1, Color.ORANGE_RED, duration)
-
-			# Draw the ACTUAL target position (where the foot currently is)
-			DebugDraw3D.draw_sphere(targets[index].global_position, 0.15, Color.MAGENTA, duration)
+			leg.draw_debug(result_pos, duration)
 
 
-func _physics_process(delta: float) -> void:
-	if follow_target and _body_sod:
-		global_position = _body_sod.update(delta, follow_target.global_position)
-
-	if targets.size() != thighs.size():
-		return
-
+func _physics_process(_delta: float) -> void:
 	if continuous_snap or debug_draw:
 		cast_ground_rays(continuous_snap, 0.0)

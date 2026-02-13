@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dp36r5onqw406"
-path="res://.godot/imported/SmallEnemySpiderReRigged.glb-06142f6dce80d0adc7089e0285faea9c.scn"
+uid="uid://dljggcohnwq4b"
+path="res://.godot/imported/SmallEnemySpider.glb-fdadf0bb22c75bef43008d7a28ffc9ac.scn"
 
 [deps]
 
-source_file="res://Models/SmallEnemySpiderReRigged.glb"
-dest_files=["res://.godot/imported/SmallEnemySpiderReRigged.glb-06142f6dce80d0adc7089e0285faea9c.scn"]
+source_file="res://Models/SmallEnemySpider.glb"
+dest_files=["res://.godot/imported/SmallEnemySpider.glb-fdadf0bb22c75bef43008d7a28ffc9ac.scn"]
 
 [params]
 
