@@ -20,7 +20,7 @@ extends Resource
 	set(value):
 		raycast_offset = value
 		emit_changed()
-
+@export var step_height: float = 0.2
 @export var global_raycast_shift: Vector3 = Vector3.ZERO:
 	set(value):
 		global_raycast_shift = value
